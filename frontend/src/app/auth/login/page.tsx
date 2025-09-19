@@ -34,7 +34,10 @@ export default function LoginPage() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button className="w-full bg-white text-black py-2 rounded">Sign in</button>
       </form>
-      <p className="text-sm text-neutral-400 mt-3">No account? <Link className="underline" href="/auth/register">Register</Link></p>
+      <div className="mt-3 space-y-2">
+        <p className="text-sm text-neutral-400">No account? <Link className="underline" href="/auth/register">Register</Link></p>
+        <p className="text-sm text-neutral-400">Forgot password? <Link className="underline" href="/auth/forgot-password">Reset it</Link></p>
+      </div>
     </div>
   );
-} 
+}

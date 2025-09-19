@@ -8,6 +8,11 @@ urlpatterns = [
     path('auth/login/', TokenObtainPairView.as_view(), name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='refresh'),
     
+    # Password Reset
+    path('auth/forgot-password/', views.ForgotPasswordView.as_view(), name='forgot_password'),
+    path('auth/reset-password/', views.ResetPasswordView.as_view(), name='reset_password'),
+    path('auth/verify-reset-token/<uuid:token>/', views.VerifyResetTokenView.as_view(), name='verify_reset_token'),
+    
     # User Profile
     path('me/', views.MeView.as_view(), name='me'),
     path('me/credits/add/', views.AddCreditsView.as_view(), name='add_credits'),
@@ -29,7 +34,7 @@ urlpatterns = [
     
     # Payment Webhooks
     path('webhooks/khalti/', views.KhaltiWebhookView.as_view(), name='khalti_webhook'),
-    path('webhooks/esewa/', views.ESewaWebhookView.as_view(), name='esewa_webhook'),  # Fixed: capital E
+    path('webhooks/esewa/', views.ESewaWebhookView.as_view(), name='esewa_webhook'),
     path('webhooks/stripe/', views.StripeWebhookView.as_view(), name='stripe_webhook'),
     path('webhooks/razorpay/', views.RazorpayWebhookView.as_view(), name='razorpay_webhook'),
     path('webhooks/binance/', views.BinanceWebhookView.as_view(), name='binance_webhook'),

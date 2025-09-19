@@ -177,3 +177,10 @@ def build_thread_context(thread: ChatThread) -> str:
         context_parts.append(f"{role}: {msg.content}")
     
     return "\n".join(context_parts)
+
+# Import password reset views
+from .password_reset_views import (
+    ForgotPasswordView,
+    ResetPasswordView,
+    VerifyResetTokenView,
+)
