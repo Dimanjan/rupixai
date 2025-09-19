@@ -15,10 +15,10 @@ from .serializers import (
 )
 from .services import select_service
 
-# Import webhook views
+# Import webhook views with correct class names
 from .webhook_views import (
     KhaltiWebhookView,
-    eSewaWebhookView,
+    ESewaWebhookView,  # Fixed: capital E
     StripeWebhookView,
     RazorpayWebhookView,
     BinanceWebhookView,

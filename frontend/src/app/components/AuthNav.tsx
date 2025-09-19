@@ -3,10 +3,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { isAuthenticated, clearTokens } from "@/lib/api";
 
-export default function AuthNav() {
+function AuthNav() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setAuthenticated(isAuthenticated());
   }, []);
 
@@ -15,6 +17,16 @@ export default function AuthNav() {
     setAuthenticated(false);
     window.location.href = '/auth/login';
   };
+
+  // Don't render until mounted to avoid hydration issues
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-4 bg-neutral-800 rounded animate-pulse"></div>
+        <div className="w-16 h-4 bg-neutral-800 rounded animate-pulse"></div>
+      </div>
+    );
+  }
 
   if (authenticated) {
     return (
@@ -33,3 +45,5 @@ export default function AuthNav() {
     </div>
   );
 }
+
+export default AuthNav;

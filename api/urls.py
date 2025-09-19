@@ -29,7 +29,7 @@ urlpatterns = [
     
     # Payment Webhooks
     path('webhooks/khalti/', views.KhaltiWebhookView.as_view(), name='khalti_webhook'),
-    path('webhooks/esewa/', views.eSewaWebhookView.as_view(), name='esewa_webhook'),
+    path('webhooks/esewa/', views.ESewaWebhookView.as_view(), name='esewa_webhook'),  # Fixed: capital E
     path('webhooks/stripe/', views.StripeWebhookView.as_view(), name='stripe_webhook'),
     path('webhooks/razorpay/', views.RazorpayWebhookView.as_view(), name='razorpay_webhook'),
     path('webhooks/binance/', views.BinanceWebhookView.as_view(), name='binance_webhook'),
