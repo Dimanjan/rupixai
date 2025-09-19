@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import SocialLogin from "@/app/components/SocialLogin";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -21,6 +23,14 @@ export default function RegisterPage() {
     }
   }
 
+  const handleSocialSuccess = () => {
+    router.push("/");
+  };
+
+  const handleSocialError = (error: string) => {
+    setError(error);
+  };
+
   return (
     <div className="max-w-sm mx-auto">
       <h1 className="text-xl font-semibold mb-4">Create account</h1>
@@ -31,6 +41,12 @@ export default function RegisterPage() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button className="w-full bg-white text-black py-2 rounded">Sign up</button>
       </form>
+      
+      <SocialLogin onSuccess={handleSocialSuccess} onError={handleSocialError} />
+      
+      <div className="mt-3 text-center">
+        <p className="text-sm text-neutral-400">Already have an account? <Link className="underline" href="/auth/login">Login</Link></p>
+      </div>
     </div>
   );
-} 
+}

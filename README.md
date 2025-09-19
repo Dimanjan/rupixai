@@ -256,3 +256,135 @@ For support, please open an issue on GitHub or contact the development team.
 - Credit system with payment gateways
 - Chat history management
 - Modern responsive UI
+
+## Social Login Integration
+
+RupixAI now supports social login with multiple providers using Django Allauth. Users can sign in with their existing social media accounts.
+
+### Supported Providers
+
+- **Google** - OAuth2 with profile and email access
+- **Facebook** - OAuth2 with profile and email access  
+- **Instagram** - OAuth2 with profile access
+- **GitHub** - OAuth2 with user and repository access
+- **Twitter** - OAuth2 with read access
+
+### Backend Configuration
+
+The social login system is built on Django Allauth and integrates seamlessly with the existing JWT authentication system.
+
+#### API Endpoints
+
+- `GET /api/social/urls/` - Get social login URLs for all providers
+- `POST /api/social/callback/` - Handle social login callback with access token
+
+#### OAuth App Setup
+
+To enable social login, you need to create OAuth applications with each provider:
+
+**Google OAuth2:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URIs: `http://localhost:8000/accounts/google/login/callback/`
+
+**Facebook OAuth2:**
+1. Go to [Facebook Developers](https://developers.facebook.com/)
+2. Create a new app
+3. Add Facebook Login product
+4. Set valid OAuth redirect URIs: `http://localhost:8000/accounts/facebook/login/callback/`
+
+**Instagram OAuth2:**
+1. Go to [Facebook Developers](https://developers.facebook.com/)
+2. Create a new app
+3. Add Instagram Basic Display product
+4. Set valid OAuth redirect URIs: `http://localhost:8000/accounts/instagram/login/callback/`
+
+**GitHub OAuth2:**
+1. Go to GitHub Settings > Developer settings > OAuth Apps
+2. Create a new OAuth App
+3. Set Authorization callback URL: `http://localhost:8000/accounts/github/login/callback/`
+
+**Twitter OAuth2:**
+1. Go to [Twitter Developer Portal](https://developer.twitter.com/)
+2. Create a new app
+3. Enable OAuth 2.0
+4. Set callback URL: `http://localhost:8000/accounts/twitter/login/callback/`
+
+### Environment Variables
+
+Add these to your `.env` file:
+
+```bash
+# Google OAuth2
+GOOGLE_OAUTH2_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH2_CLIENT_SECRET=your-google-client-secret
+
+# Facebook OAuth2
+FACEBOOK_APP_ID=your-facebook-app-id
+FACEBOOK_APP_SECRET=your-facebook-app-secret
+
+# Instagram OAuth2
+INSTAGRAM_CLIENT_ID=your-instagram-client-id
+INSTAGRAM_CLIENT_SECRET=your-instagram-client-secret
+
+# GitHub OAuth2
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Twitter OAuth2
+TWITTER_CLIENT_ID=your-twitter-client-id
+TWITTER_CLIENT_SECRET=your-twitter-client-secret
+```
+
+### Frontend Integration
+
+The frontend includes a `SocialLogin` component that provides buttons for all supported providers. The component handles the OAuth flow and integrates with the existing JWT authentication system.
+
+#### Usage
+
+```tsx
+import SocialLogin from "@/app/components/SocialLogin";
+
+<SocialLogin 
+  onSuccess={() => router.push("/")}
+  onError={(error) => setError(error)}
+/>
+```
+
+### Testing
+
+Run the test script to verify social login endpoints:
+
+```bash
+python test_social_login.py
+```
+
+### Security Features
+
+- **JWT Integration**: Social logins generate JWT tokens compatible with the existing auth system
+- **User Linking**: Existing users can link social accounts to their profiles
+- **Unique Usernames**: Automatic username generation for social users
+- **Email Verification**: Optional email verification for social accounts
+- **Token Expiration**: Social login tokens follow the same expiration rules as regular JWT tokens
+
+### Production Considerations
+
+1. **HTTPS Required**: OAuth providers require HTTPS in production
+2. **Domain Verification**: Update OAuth app settings with production domains
+3. **Rate Limiting**: Implement rate limiting for social login endpoints
+4. **Error Handling**: Comprehensive error handling for OAuth failures
+5. **User Data Privacy**: Ensure compliance with privacy regulations
+
+### Troubleshooting
+
+**Common Issues:**
+
+1. **"Invalid redirect URI"**: Check OAuth app settings match your domain
+2. **"App not verified"**: Complete OAuth app verification process
+3. **"Scope not granted"**: Ensure requested scopes are approved
+4. **"Token expired"**: Implement proper token refresh logic
+
+**Debug Mode:**
+Set `DEBUG=True` in your `.env` file to see detailed OAuth flow logs.

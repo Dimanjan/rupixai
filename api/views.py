@@ -184,3 +184,9 @@ from .password_reset_views import (
     ResetPasswordView,
     VerifyResetTokenView,
 )
+
+# Import social auth views
+from .social_auth_views import (
+    SocialLoginUrlsView,
+    SocialLoginCallbackView,
+)

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { apiFetch, saveTokens } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SocialLogin from "@/app/components/SocialLogin";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -25,6 +26,14 @@ export default function LoginPage() {
     }
   }
 
+  const handleSocialSuccess = () => {
+    router.push("/");
+  };
+
+  const handleSocialError = (error: string) => {
+    setError(error);
+  };
+
   return (
     <div className="max-w-sm mx-auto">
       <h1 className="text-xl font-semibold mb-4">Login</h1>
@@ -34,6 +43,9 @@ export default function LoginPage() {
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button className="w-full bg-white text-black py-2 rounded">Sign in</button>
       </form>
+      
+      <SocialLogin onSuccess={handleSocialSuccess} onError={handleSocialError} />
+      
       <div className="mt-3 space-y-2">
         <p className="text-sm text-neutral-400">No account? <Link className="underline" href="/auth/register">Register</Link></p>
         <p className="text-sm text-neutral-400">Forgot password? <Link className="underline" href="/auth/forgot-password">Reset it</Link></p>

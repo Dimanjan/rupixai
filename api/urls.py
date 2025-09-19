@@ -13,6 +13,10 @@ urlpatterns = [
     path('auth/reset-password/', views.ResetPasswordView.as_view(), name='reset_password'),
     path('auth/verify-reset-token/<uuid:token>/', views.VerifyResetTokenView.as_view(), name='verify_reset_token'),
     
+    # Social Auth
+    path('social/urls/', views.SocialLoginUrlsView.as_view(), name='social_login_urls'),
+    path('social/callback/', views.SocialLoginCallbackView.as_view(), name='social_login_callback'),
+    
     # User Profile
     path('me/', views.MeView.as_view(), name='me'),
     path('me/credits/add/', views.AddCreditsView.as_view(), name='add_credits'),
