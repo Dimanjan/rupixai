@@ -15,167 +15,165 @@ from .serializers import (
 )
 from .services import select_service
 
+# Import webhook views
+from .webhook_views import (
+    KhaltiWebhookView,
+    eSewaWebhookView,
+    StripeWebhookView,
+    RazorpayWebhookView,
+    BinanceWebhookView,
+)
+from .payment_views import (
+    PaymentTransactionListView,
+    CreatePaymentView,
+    VerifyPaymentView,
+    PaymentTransactionDetailView,
+)
+
 
 @extend_schema(tags=['Auth'], summary='Register a new user', responses={201: OpenApiResponse(description='User created')})
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        # Profile is created automatically via signals
+        return user
 
 
-@extend_schema(tags=['Users'], summary='Get current user profile', responses={200: UserSerializer})
-class MeView(APIView):
+@extend_schema(tags=['Auth'], summary='Get current user profile', responses={200: UserSerializer})
+class MeView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        return Response(UserSerializer(request.user).data)
+    def get_object(self):
+        return self.request.user
 
 
-@extend_schema(tags=['Credits'], summary='Add credits to a user (admin only)')
+@extend_schema(tags=['Credits'], summary='Add credits to user account', responses={200: OpenApiResponse(description='Credits added')})
 class AddCreditsView(APIView):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        user_id = request.data.get("user_id")
-        amount = int(request.data.get("amount", 0))
-        if not user_id or amount <= 0:
-            return Response({"detail": "user_id and positive amount required"}, status=400)
-        profile = get_object_or_404(Profile, user_id=user_id)
-        profile.credits += amount
-        profile.save(update_fields=["credits"])
-        return Response({"user_id": user_id, "credits": profile.credits})
+        amount = request.data.get('amount', 0)
+        try:
+            amount = int(amount)
+            if amount <= 0:
+                return Response({'error': 'Amount must be positive'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            profile = request.user.profile
+            profile.credits += amount
+            profile.save()
+            
+            return Response({
+                'message': f'Added {amount} credits',
+                'total_credits': profile.credits
+            })
+        except (ValueError, TypeError):
+            return Response({'error': 'Invalid amount'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema(tags=['Chat'], summary='List or create chat threads', responses={200: ChatThreadSerializer})
+@extend_schema(tags=['Chat'], summary='List and create chat threads', responses={200: ChatThreadSerializer(many=True)})
 class ChatThreadListCreateView(generics.ListCreateAPIView):
     serializer_class = ChatThreadSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return ChatThread.objects.filter(user=self.request.user).order_by("-updated_at")
+        return ChatThread.objects.filter(user=self.request.user).order_by('-updated_at')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
-@extend_schema(tags=['Chat'], summary='Retrieve or delete a chat thread', responses={200: ChatThreadSerializer})
-class ChatThreadDetailView(generics.RetrieveDestroyAPIView):
+@extend_schema(tags=['Chat'], summary='Get chat thread details', responses={200: ChatThreadSerializer})
+class ChatThreadDetailView(generics.RetrieveAPIView):
     serializer_class = ChatThreadSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = 'thread_id'
 
     def get_queryset(self):
         return ChatThread.objects.filter(user=self.request.user)
 
 
-@extend_schema(tags=['Chat'], summary='Create a message in a thread', responses={201: ChatThreadSerializer})
+@extend_schema(tags=['Chat'], summary='Add message to chat thread', responses={201: OpenApiResponse(description='Message added')})
 class ChatMessageCreateView(generics.CreateAPIView):
     serializer_class = ChatMessageSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        thread = get_object_or_404(ChatThread, id=kwargs.get('thread_id'), user=request.user)
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        ChatMessage.objects.create(
-            thread=thread,
-            role=serializer.validated_data.get('role', 'user'),
-            content=serializer.validated_data['content'],
-        )
-        thread.save(update_fields=["updated_at"])  # touch
-        return Response(ChatThreadSerializer(thread).data, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        thread_id = self.kwargs['thread_id']
+        thread = get_object_or_404(ChatThread, id=thread_id, user=self.request.user)
+        serializer.save(thread=thread)
 
 
-def build_thread_context(thread: ChatThread) -> str:
-    history = []
-    for msg in thread.messages.order_by('created_at')[:50]:
-        prefix = 'User' if msg.role == 'user' else 'Assistant'
-        history.append(f"{prefix}: {msg.content}")
-    return "\n".join(history)
-
-
-@extend_schema(tags=['Images'], summary='List or create image jobs (multipart for uploads)', responses={200: ImageJobSerializer})
+@extend_schema(tags=['Images'], summary='List and create image generation jobs', responses={200: ImageJobSerializer(many=True)})
 class ImageJobListCreateView(generics.ListCreateAPIView):
     serializer_class = ImageJobSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return ImageJob.objects.filter(user=self.request.user).order_by("-created_at")
+        return ImageJob.objects.filter(user=self.request.user).order_by('-created_at')
 
-    @transaction.atomic
-    def create(self, request, *args, **kwargs):
-        provider = request.data.get("provider")
-        model = request.data.get("model")
-        prompt = request.data.get("prompt", "")
-        thread_id = request.data.get("thread") or request.data.get("thread_id")
-        thread = None
-        if thread_id:
-            thread = get_object_or_404(ChatThread, id=thread_id, user=request.user)
-
-        # Prepare context-aware prompt if a thread is provided
-        final_prompt = prompt
-        if thread:
-            context = build_thread_context(thread)
-            if context:
-                final_prompt = f"Context from conversation so far:\n{context}\n\nCurrent request: {prompt}"
-
-        # Collect uploaded files (multiple)
-        upload_files = request.FILES.getlist('images')
-        input_images = [f.read() for f in upload_files][:10]
-
-        profile = request.user.profile
-        required_credits = 1
-        if profile.credits < required_credits:
-            return Response({"detail": "Insufficient credits"}, status=402)
-
-        # Create job as queued
-        job = ImageJob.objects.create(
-            user=request.user,
-            thread=thread,
-            provider=provider,
-            model=model or "auto",
-            prompt=prompt,
-            input_images=[],
-            status='queued',
-            credits_spent=required_credits,
-        )
-
-        # Deduct credits up-front
-        profile.credits -= required_credits
-        profile.save(update_fields=["credits"])
-
-        # Call provider service synchronously for now
+    def perform_create(self, serializer):
+        # Check if user has enough credits
+        profile = self.request.user.profile
+        if profile.credits < 1:
+            return Response({'error': 'Insufficient credits'}, status=status.HTTP_402_PAYMENT_REQUIRED)
+        
+        # Deduct credits
+        profile.credits -= 1
+        profile.save()
+        
+        # Create the job
+        job = serializer.save(user=self.request.user, status='pending', credits_spent=1)
+        
+        # Generate images asynchronously (in a real app, use Celery)
         try:
-            service = select_service(provider)
-            outputs_b64 = service.generate(prompt=final_prompt, input_images=input_images)
-            job.output_images = outputs_b64
+            service = select_service(job.provider)
+            images = service.generate(job.prompt, job.input_images)
+            job.output_images = images
             job.status = 'completed'
             job.completed_at = timezone.now()
-            job.save(update_fields=["output_images", "status", "completed_at"]) 
-
-            # usage counter
-            profile.total_images_generated += len(outputs_b64) if outputs_b64 else 1
-            profile.save(update_fields=["total_images_generated"]) 
-
-            # Persist chat messages to history within thread if provided
-            if thread:
-                ChatMessage.objects.create(thread=thread, role='user', content=prompt)
-                ChatMessage.objects.create(thread=thread, role='assistant', content=f"Generated {len(outputs_b64) if outputs_b64 else 1} image(s)")
-                thread.save(update_fields=["updated_at"]) 
+            job.save()
+            
+            # Add message to thread if specified
+            if job.thread:
+                thread = job.thread
+                ChatMessage.objects.create(
+                    thread=thread,
+                    role='user',
+                    content=f"Generate image: {job.prompt}"
+                )
+                ChatMessage.objects.create(
+                    thread=thread,
+                    role='assistant',
+                    content=f"Generated {len(images)} image(s) using {job.provider} {job.model}"
+                )
+                
         except Exception as e:
             job.status = 'failed'
-            job.save(update_fields=["status"]) 
-            return Response({"detail": str(e)}, status=400)
-
-        return Response(ImageJobSerializer(job).data, status=201)
+            job.save()
+            # Refund credits on failure
+            profile.credits += 1
+            profile.save()
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @extend_schema(tags=['Images'], summary='Get image job details', responses={200: ImageJobSerializer})
 class ImageJobDetailView(generics.RetrieveAPIView):
     serializer_class = ImageJobSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = 'job_id'
 
     def get_queryset(self):
         return ImageJob.objects.filter(user=self.request.user)
-from .payment_views import *
-from .webhook_views import *
+
+
+def build_thread_context(thread: ChatThread) -> str:
+    """Build context string from chat thread history"""
+    messages = thread.messages.all().order_by('created_at')
+    context_parts = []
+    
+    for msg in messages:
+        role = "User" if msg.role == "user" else "Assistant"
+        context_parts.append(f"{role}: {msg.content}")
+    
+    return "\n".join(context_parts)

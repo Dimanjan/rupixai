@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import "./globals.css";
-import { AuthNav } from "./components/AuthNav";
+import AuthNav from "./components/AuthNav";
 
 export const metadata: Metadata = {
   title: "RupixAI",
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Image
-                src="/rupixlogo.png"
+                src="/rupixlogo.jpeg"
                 alt="RupixAI Logo"
                 width={32}
                 height={32}
