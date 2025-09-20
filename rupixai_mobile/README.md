@@ -1,183 +1,92 @@
 # RupixAI Mobile App
 
-A Flutter mobile application for the RupixAI platform - AI-powered image generation.
+A Flutter mobile application for AI-powered image generation.
 
-## Features
-
-- �� **AI Image Generation**: Generate images using OpenAI DALL-E 3 and Google Gemini
-- 🔐 **Authentication**: Secure login/register with JWT tokens
-- 💳 **Credit System**: Purchase credits through multiple payment gateways
-- 📱 **Modern UI**: Beautiful, responsive design with Material 3
-- 🔄 **Real-time Updates**: Live status updates for image generation
-- 📸 **Image Upload**: Support for multiple image inputs
-- 📊 **History Tracking**: View all your generated images
-- 👤 **User Profile**: Manage your account and view statistics
-
-## Tech Stack
-
-- **Framework**: Flutter 3.35.2
-- **State Management**: Riverpod
-- **Navigation**: GoRouter
-- **HTTP Client**: Dio
-- **Local Storage**: Flutter Secure Storage
-- **Image Handling**: Image Picker, Cached Network Image
-- **UI Components**: Material 3 Design
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Flutter SDK (3.0.0 or higher)
-- Dart SDK (3.0.0 or higher)
-- Android Studio / VS Code
-- Android device or emulator
+- Flutter SDK 3.0+
+- Dart SDK 3.0+
+- RupixAI backend running on `http://127.0.0.1:8000`
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd rupixai_mobile
-   ```
+```bash
+# Install dependencies
+flutter pub get
 
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
+# Run on web
+flutter run -d chrome
 
-3. **Configure API endpoint**
-   - Update the `_baseUrl` in `lib/services/api_service.dart`
-   - Default: `http://localhost:8000/api`
-   - For production: `https://your-api-domain.com/api`
+# Run on Android
+flutter run -d android
 
-4. **Run the app**
-   ```bash
-   flutter run
-   ```
-
-### Configuration
-
-#### API Configuration
-Update the API base URL in `lib/services/api_service.dart`:
-
-```dart
-static const String _baseUrl = 'https://your-api-domain.com/api';
+# Run on iOS
+flutter run -d ios
 ```
 
-#### Payment Gateways
-The app supports multiple payment gateways:
-- Stripe
-- Khalti (Nepal)
-- eSewa (Nepal)
-- Razorpay (India)
-- Binance (Crypto)
+### Test Login
+- **Username**: `demo`
+- **Password**: `demo123`
+- **Credits**: 100
 
-#### Social Login
-Configure social login providers in your backend and update the app accordingly.
+## 📱 Features
 
-## Project Structure
+- ✅ AI Image Generation (OpenAI DALL-E 3, Google Gemini)
+- ✅ User Authentication & Registration
+- ✅ Credit System & Payment Integration
+- ✅ Chat History & Image Management
+- ✅ Social Login (Google, Facebook, GitHub, etc.)
+- ✅ Cross-Platform (Web, Android, iOS)
+- ✅ Material 3 Design
+
+## 🛠️ Tech Stack
+
+- **Flutter** - Cross-platform framework
+- **Riverpod** - State management
+- **GoRouter** - Navigation
+- **Dio** - HTTP client
+- **Material 3** - UI design system
+
+## 📁 Project Structure
 
 ```
 lib/
-├── models/           # Data models
-│   ├── user.dart
-│   ├── image_job.dart
-│   ├── chat.dart
-│   └── payment.dart
-├── services/         # API services
-│   └── api_service.dart
-├── providers/        # State management
-│   ├── auth_provider.dart
-│   └── image_provider.dart
-├── screens/          # UI screens
-│   ├── auth/
-│   ├── home/
-│   ├── profile/
-│   ├── history/
-│   └── payment/
-├── widgets/          # Reusable widgets
-├── utils/            # Utilities
-│   └── app_theme.dart
-└── main.dart         # App entry point
+├── main.dart              # App entry point
+├── models/               # Data models
+├── providers/            # Riverpod providers
+├── screens/              # UI screens
+│   ├── auth/            # Login/Register
+│   ├── home/            # Image generation
+│   ├── profile/         # User profile
+│   ├── history/         # Chat history
+│   └── payment/         # Credit purchase
+├── services/            # API services
+├── utils/               # Utilities
+└── widgets/             # Reusable widgets
 ```
 
-## Features Overview
+## 🔧 Configuration
 
-### Authentication
-- User registration and login
-- JWT token management
-- Secure token storage
-- Social login support (Google, Facebook, etc.)
+Update API endpoint in `lib/services/api_service.dart`:
 
-### Image Generation
-- Multiple AI providers (OpenAI, Gemini)
-- Custom prompts
-- Image upload support
-- Real-time generation status
-- Credit-based pricing
+```dart
+static const String _baseUrl = 'http://your-backend-url/api';
+```
 
-### Payment System
-- Multiple payment gateways
-- Credit packages
-- Transaction history
-- Secure payment processing
+## 🚀 Building
 
-### User Experience
-- Modern Material 3 design
-- Dark/Light theme support
-- Responsive layout
-- Smooth animations
-- Offline support (cached images)
-
-## API Integration
-
-The app communicates with the Django backend through REST APIs:
-
-- **Authentication**: `/api/auth/`
-- **Image Generation**: `/api/image-jobs/`
-- **User Profile**: `/api/me/`
-- **Payments**: `/api/payments/`
-- **Chat History**: `/api/chat/`
-
-## Building for Production
-
-### Android
 ```bash
+# Web
+flutter build web --release
+
+# Android
 flutter build apk --release
-# or
-flutter build appbundle --release
-```
 
-### iOS
-```bash
+# iOS
 flutter build ios --release
 ```
 
-## Contributing
+## 📄 License
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions:
-- Create an issue on GitHub
-- Contact the development team
-- Check the documentation
-
-## Roadmap
-
-- [ ] Push notifications
-- [ ] Offline mode
-- [ ] Advanced image editing
-- [ ] Batch image generation
-- [ ] AI model comparison
-- [ ] Social sharing
-- [ ] Advanced user analytics
+MIT License - see LICENSE file for details.
