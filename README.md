@@ -515,3 +515,72 @@ CREATE INDEX idx_api_payment_transaction_id ON api_paymenttransaction(transactio
 3. **Backup Strategy**: Automated daily backups with retention policy
 4. **Monitoring**: Database performance monitoring and alerting
 5. **Security**: SSL connections, restricted access, and regular security updates
+
+## 📱 Flutter Mobile App
+
+The project now includes a complete Flutter mobile application that connects to the Django backend.
+
+### Features
+
+- 🎨 **AI Image Generation**: Generate images using OpenAI DALL-E 3 and Google Gemini
+- 🔐 **Authentication**: Secure login/register with JWT tokens
+- 💳 **Credit System**: Purchase credits through multiple payment gateways
+- 📱 **Modern UI**: Beautiful, responsive design with Material 3
+- 🔄 **Real-time Updates**: Live status updates for image generation
+- 📸 **Image Upload**: Support for multiple image inputs
+- 📊 **History Tracking**: View all your generated images
+- 👤 **User Profile**: Manage your account and view statistics
+
+### Quick Start
+
+1. **Run the Flutter app**:
+   ```bash
+   ./run_flutter.sh
+   ```
+
+2. **Or manually**:
+   ```bash
+   cd rupixai_mobile
+   flutter pub get
+   flutter run
+   ```
+
+### Flutter App Structure
+
+```
+rupixai_mobile/
+├── lib/
+│   ├── models/           # Data models (User, ImageJob, Chat, Payment)
+│   ├── services/         # API service for Django backend
+│   ├── providers/        # State management with Riverpod
+│   ├── screens/          # UI screens (Auth, Home, Profile, etc.)
+│   ├── widgets/          # Reusable UI components
+│   ├── utils/            # Utilities and themes
+│   └── main.dart         # App entry point
+├── android/              # Android configuration
+├── ios/                  # iOS configuration
+└── pubspec.yaml          # Dependencies
+```
+
+### Configuration
+
+- **API Endpoint**: Update `_baseUrl` in `lib/services/api_service.dart`
+- **Default**: `http://localhost:8000/api`
+- **Production**: `https://your-api-domain.com/api`
+
+### Supported Platforms
+
+- ✅ **Android** (API 21+)
+- ✅ **iOS** (iOS 11.0+)
+- ✅ **Web** (Chrome, Firefox, Safari)
+- ✅ **Desktop** (macOS, Windows, Linux)
+
+### Dependencies
+
+- **State Management**: Riverpod
+- **Navigation**: GoRouter
+- **HTTP Client**: Dio
+- **Local Storage**: Flutter Secure Storage
+- **Image Handling**: Image Picker, Cached Network Image
+- **UI**: Material 3 Design System
+
