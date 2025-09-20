@@ -388,3 +388,130 @@ python test_social_login.py
 
 **Debug Mode:**
 Set `DEBUG=True` in your `.env` file to see detailed OAuth flow logs.
+
+## Database Configuration
+
+RupixAI supports both PostgreSQL (recommended for production) and SQLite (for development).
+
+### PostgreSQL Setup (Recommended)
+
+#### Quick Setup
+```bash
+# Run the automated setup script
+./scripts/setup_postgres.sh
+```
+
+#### Manual Setup
+1. **Install PostgreSQL**:
+   ```bash
+   # macOS
+   brew install postgresql@14
+   brew services start postgresql@14
+   
+   # Ubuntu/Debian
+   sudo apt-get install postgresql postgresql-contrib
+   sudo systemctl start postgresql
+   ```
+
+2. **Create Database and User**:
+   ```sql
+   CREATE DATABASE rupixai_db;
+   CREATE USER rupixai_user WITH PASSWORD 'rupixai_password';
+   GRANT ALL PRIVILEGES ON DATABASE rupixai_db TO rupixai_user;
+   ALTER USER rupixai_user CREATEDB;
+   ```
+
+3. **Configure Environment Variables**:
+   ```bash
+   # Add to your .env file
+   DB_NAME=rupixai_db
+   DB_USER=rupixai_user
+   DB_PASSWORD=rupixai_password
+   DB_HOST=localhost
+   DB_PORT=5432
+   USE_SQLITE=False
+   ```
+
+4. **Run Migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+
+### SQLite Setup (Development)
+
+For development, you can use SQLite by setting:
+```bash
+USE_SQLITE=True
+```
+
+### Database Architecture
+
+The application uses the following main database tables:
+
+- **auth_user**: User accounts and authentication
+- **api_profile**: User profiles with credits and statistics
+- **api_chatthread**: Conversation threads
+- **api_chatmessages**: Individual chat messages
+- **api_imagejob**: Image generation requests and results
+- **api_paymenttransaction**: Payment records
+- **api_passwordresettoken**: Password reset tokens
+- **socialaccount_***: Social login integration (Django Allauth)
+
+For detailed database architecture, see [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md).
+
+### Data Migration
+
+#### From SQLite to PostgreSQL
+1. **Export SQLite Data**:
+   ```bash
+   USE_SQLITE=True python manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission > data_backup.json
+   ```
+
+2. **Set up PostgreSQL** (see above)
+
+3. **Import Data**:
+   ```bash
+   python manage.py migrate
+   python manage.py loaddata data_backup.json
+   ```
+
+### Database Backup and Recovery
+
+#### Backup
+```bash
+# Full backup
+pg_dump -h localhost -U rupixai_user rupixai_db > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Schema only
+pg_dump -h localhost -U rupixai_user -s rupixai_db > schema_backup.sql
+```
+
+#### Restore
+```bash
+psql -h localhost -U rupixai_user rupixai_db < backup_file.sql
+```
+
+### Performance Optimization
+
+#### Recommended Indexes
+```sql
+-- User lookups
+CREATE INDEX idx_auth_user_username ON auth_user(username);
+CREATE INDEX idx_auth_user_email ON auth_user(email);
+
+-- Image jobs by user and status
+CREATE INDEX idx_api_imagejob_user_status ON api_imagejob(user_id, status);
+CREATE INDEX idx_api_imagejob_created_at ON api_imagejob(created_at);
+
+-- Payment transactions
+CREATE INDEX idx_api_payment_user_status ON api_paymenttransaction(user_id, status);
+CREATE INDEX idx_api_payment_transaction_id ON api_paymenttransaction(transaction_id);
+```
+
+### Production Considerations
+
+1. **Connection Pooling**: Configure `CONN_MAX_AGE` for connection reuse
+2. **Read Replicas**: Implement read replicas for scaling
+3. **Backup Strategy**: Automated daily backups with retention policy
+4. **Monitoring**: Database performance monitoring and alerting
+5. **Security**: SSL connections, restricted access, and regular security updates
